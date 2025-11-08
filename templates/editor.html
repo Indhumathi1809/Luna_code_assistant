@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Favicon (replace 'favicon.ico' with the path to your favicon) -->
+     <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <title>Luna - AI Code Editor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/editor.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/modal.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/theme/monokai.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/lint/lint.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/hint/show-hint.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/fold/foldgutter.min.css">
+   
+        <!-- Include Font Awesome CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+   
+    <style>
+        .CodeMirror {
+            height: 2500px;
+            z-index: 0; /* Lower the z-index to make sure the menu is above CodeMirror */
+            transition: height 0.5s ease; 
+        }
+        
+        body.fullscreen .CodeMirror {
+            height: 900px; /* Adjust the height in fullscreen mode */
+        }
+        /* CSS for modals */
+.modal {
+    display: none; /* Hide modal by default */
+    position: fixed;
+    z-index: 1000;
+    left: 50;
+    top: 30;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    position: relative;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+        
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/lint/lint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/lint/python-lint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/edit/continuelist.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/hint/show-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/hint/anyword-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/lint/javascript-lint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/lint/json-lint.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/lint/css-lint.min.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/hint/show-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/hint/anyword-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/addon/fold/foldcode.min.js"></script>
+
+
+    
+
+    
+        
+</head>
+<body>
+
+
+        <div id="menubar">
+            <div id="title">
+                <h1>Code <span>Editor</span></h1>
+            </div>
+            <ul>
+                <li class="menu">File
+                    <ul>
+                        <li class="menu-item" onclick="createNewTab()" title="click here to add new tab" >New</li>
+                        <li class="menu-item" onclick="openFile()" title="click here to open new file" >Open</li>
+                        <li class="menu-item dropdown" id="openRecentDropdown">
+                            Open Recent
+                            <ul class="dropdown-menu" id="recentFilesDropdown" ></ul>
+                        </li>
+                        
+
+                        <li class="menu-item"  onclick="saveFile()" title="click here to save the file">Save</li>
+                        <li class="menu-item"  onclick="exitEditor()" title="click here to close the editor">Exit</li>
+                    </ul>
+                </li>
+                <li class="menu">Edit
+                    <ul>
+                        <li class="menu-item" onclick="cutAction()" >Cut</li>
+                        <li class="menu-item" onclick="copyAction()">Copy</li>
+                        <li class="menu-item" onclick="pasteAction()">Paste</li>
+                        <li class="menu-item" onclick="undoAction()">Undo</li>
+                        <li class="menu-item" onclick="redoAction()">Redo</li>
+                        <li class="menu-item" onclick="findAction()">Find</li>
+                        <li class="menu-item" onclick="replaceAction()">Replace</li>
+
+                    </ul>
+                </li>
+
+                <li class="menu">View
+                    <ul>
+                        <li class="menu-item menu-item-fullscreen" onclick="toggleFullscreen()" title="click here to enter full screen mode">Full Screen</li>
+                        <li class="menu-item" onclick="openSearchBar()" title="click here to open the search bar">Search</li>
+                        <li class="menu-item" style="white-space: nowrap;" title="click here to increase/decrease the font size">Font Size
+                            <input type="range" id="font-size-slider" min="8" max="24" step="2" value="12" onchange="changeFontSize(this.value)" />
+                        </li>
+                        <li class="menu-item" onclick="toggleMode()" title="click here to change the mode" style="white-space: nowrap;">Toggle Light Mode</li>
+                        <li class="menu-item" style="white-space: nowrap;">
+                            <input type="checkbox" id="line-wrap-checkbox" onchange="toggleLineWrapping()" style="margin-left:-40px;display: inline-block; white-space: nowrap;" />
+                            <label for="line-wrap-checkbox" title="click here to wrap the lines" style="margin-left:-38px;display: inline-block; white-space: nowrap;">Line Wrapping</label>
+                        </li>
+                        
+                        <li class="menu-item" onclick="toggleConsole()" title="click here to open the python console">Console</li>
+                    </ul>
+                    
+                </li>
+                
+                <li class="menu">Go
+                <ul>
+                    <li class="menu-item"><a href="https://python-adv-web-apps.readthedocs.io/en/latest/" class="menu-item-link" target="_blank" title="click here to goto to python tutorial">Tutorial</a></li>
+                    <li class="menu-item"><a href="https://docs.python.org/3/" class="menu-item-link"  title="click here to goto python documentation" target="_blank">Docs</a></li>
+                    <li class="menu-item" onclick="generateCodePrompt()" title="click here to generate the code">Generate</li>
+                    <li class="menu-item" onclick="codeSnippet()" title="click here to generate snippet of code">Snippet</li>
+                    <li class="menu-item" onclick="errorDebug()" title="click here to debug the code">Debug</li>
+                    <li class="menu-item" onclick="codeRefactor()" title="click here to refactor and review the code">Refactor and Review</li>
+                    <li class="menu-item" onclick="codeDocument()" title="click here to give me documentation">Documentation</li>
+                    <li class="menu-item" onclick="codeConversion()" title="click here to convert the code ">Conversion</li>
+                    <li class="menu-item" onclick="codeExplain()">Explanation</li>
+                    <li class="menu-item" onclick="compileAndRun()">Compile and Run</li>
+                </ul>
+
+                </li>
+
+                <li class="menu">Git
+                    <ul>
+                        <li class="menu-item" id="createRepoModal" title="click here to create new repository">Create Repository</li>
+                        <li class="menu-item" id="listRepoModal" title="To list the existing repositories">List of Repositories</li>
+                        <li  class="menu-item" id="createFileModal" title="click here to create new file in repository">Create File</li>
+                        <li class="menu-item" id="uploadFileModal" title="click here to upload exisiting file in repository">Upload File</li>
+                        <li class="menu-item" id="commitChangesModal" title="click here to commit the changes">Commit Changes</li>
+                        <li class="menu-item" id="pushButton" title="click here to push the changes">Push Changes</li>
+                        <li class="menu-item" id="pullButton" title="click here to pull the changes">Pull Changes</li>
+                        <li class="menu-item" id="cloneButton" title="click here to clone the repository">Clone Repository</li>
+                    </ul>
+                </li>
+                
+            </ul>
+        </div>
+        <input type="file" id="file-input" onchange="handleFile()" />
+
+
+        <div id="editor-tabs">
+            <!-- Default Tab -->
+            <div class="tab" onclick="selectTab('tab1')"> Tab 1
+                <span class="file-info" id="file-info-tab1"></span>
+            
+            </div>
+        </div>
+
+        <div class="tab-content active" id="tab1">
+            
+            <div id="editor1"></div>
+        </div>
+
+        <!--
+        <div id="documentation-panel">
+            Documentation content will go here 
+        </div>
+        -->
+        <div id="console-container">
+            <input type="text" id="pythonCode" style="width:100%;background-color:#444444;color:#fff;" placeholder="Type Your Python code here..." onkeydown="handleKeyPress(event)">
+            <div id="output"></div>
+        </div>
+        
+        
+
+        <div id="footer">
+            <p id="line-col-info">Line: 1, Column: 1</p>
+            <p id="space-info">Spaces: 0</p>
+            <p id="utf-category-info">UTF Category: Basic Latin</p>
+        </div>
+        <div id="copyrights">
+            <p>&copy; 2024 Licensed by <span><a href="#" target="_blank">Luna</a></span>. All rights reserved.</p>
+        </div>
+
+
+    </div>
+
+
+<!--modal-->
+<div class="modal-overlay" id="createRepoModalOverlay">
+    <div class="modal">
+        <button class="close-button" id="createRepoCloseModal">&times;</button><br>
+        <form id="createRepoForm">
+            <label for="createRepoName" >Repository Name:</label>
+            <input type="text" id="createRepoName" name="createRepoName" required>
+            <label for="createRepoDescription">Repository Description:</label>
+            <input type="text" id="createRepoDescription" name="createRepoDescription">
+            <div class="checkbox-container">
+                <label class="checkbox-label" style="margin-left:-10px;">Visibility:</label>
+                <input type="checkbox" id="createPublicRepo" name="createVisibility" value="public" checked>
+                <label for="createPublicRepo">Public</label>
+                <input type="checkbox" id="createPrivateRepo" name="createVisibility" value="private">
+                <label for="createPrivateRepo">Private</label>
+            </div><br>
+            <button type="submit" class="btn">Create Repository</button>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal-overlay" id="listRepoModalOverlay">
+    <div class="modal-2">
+        <button class="close-button" id="listRepoCloseModal">&times;</button>
+        <h2>List of Repositories</h2>
+        <a href="#" id="repoList" style="text-decoration:none;margin-top:12px;padding-top:20px;color:black;"> </a> 
+    </div>
+</div>
+
+<div class="modal-overlay" id="createFileModalOverlay">
+    <div class="modal">
+        <button class="close-button" id="createFileCloseModal">&times;</button><br>
+        <form id="createFileForm">
+            <label for="repoName">Repository Name:</label>
+            <input type="text" id="repoName" name="repoName" required>
+            <label for="filePath">File Path:</label>
+            <input type="text" id="filePath" name="filePath" required>
+            <label for="fileContent">File Content:</label>
+            <textarea id="fileContent" name="fileContent" required></textarea><br>
+            <button type="submit" class="btn">Create File</button>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="uploadFileModalOverlay">
+    <div class="modal">
+        <button class="close-button" id="uploadFileCloseModal">&times;</button><br>
+        <form id="uploadFileForm">
+            <label for="uploadRepoName">Repository Name:</label>
+            <input type="text" id="uploadRepoName" name="uploadRepoName" required>
+            <label for="uploadFilePath">File Path:</label>
+            <input type="text" id="uploadFilePath" name="uploadFilePath" required>
+            <label for="fileToUpload">Select a file:</label>
+            <input type="file" id="fileToUpload" name="fileToUpload" required>
+            <button type="submit" class="btn">Upload File</button>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal-overlay" id="commitChangesModalOverlay">
+    <div class="modal">
+        <button class="close-button" id="commitChangesCloseModal">&times;</button><br>
+        <form id="commitChangesForm">
+            <label for="commitRepoName">Repository Name:</label>
+            <input type="text" id="commitRepoName" name="commitRepoName" required>
+            <label for="commitFileName">File Name:</label>
+            <input type="text" id="commitFileName" name="commitFileName" required>
+            <label for="commitMessage">Commit Message:</label>
+            <input type="text" id="commitMessage" name="commitMessage" required><br>
+            <button type="submit" class="btn">Commit Changes</button>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal-overlay" id="pushModalOverlay">
+    <div class="modal">
+        <button class="close-button" id="pushCloseModal">&times;</button>
+        <br>
+      <br>
+      <br>
+      <br>
+        <form id="pushForm">
+            <label for="pushRepoName">Repository Name:</label>
+            <input type="text" id="pushRepoName" name="pushRepoName" required><br><br>
+            <button type="submit" class="btn">Push</button>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="pullModalOverlay">
+    <div class="modal">
+        <button class="close-button" id="pullCloseModal">&times;</button>
+        <br>
+        <br>
+        <br>
+        <br>
+        <form id="pullForm">
+            <label for="pullRepoName">Repository Name:</label>
+            <input type="text" id="pullRepoName" name="pullRepoName" required><br><br>
+            <button type="submit" class="btn">Pull</button>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal-overlay" id="cloneModalOverlay">
+    <div class="modal">
+        <button class="close-button" id="cloneCloseModal">&times;</button>
+        <br>
+        <br>
+        <br>
+        <br>
+        <form id="cloneForm">
+            <label for="cloneRepoUrl">Repository URL:</label>
+            <input type="text" id="cloneRepoUrl" name="cloneRepoUrl" required><br><br>
+            <button type="submit" class="btn">Clone</button>
+        </form>
+    </div>
+</div>
+
+
+<div id="outputModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeOutputModal()">&times;</span>
+        <span style="font-size:30px;font-weight:bold;text-transform:uppercase;">output:</span>
+        <div style="margin-top:40px;font-size:30px;" id="outputModalContent"></div>
+      
+    </div>
+</div>
+
+<div id="inputModal" class="modal">
+    <div class="modal-content" style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; position: relative;">
+        <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold;" onclick="closeInputModal()">&times;</span>
+        <span style="font-size: 30px; font-weight: bold; text-transform: uppercase;">Enter Input:</span><br>
+        <input type="text" id="inputValue" placeholder="Enter input" style="margin-top: 10px; padding: 5px;border:none;">
+        <button onclick="executeWithInput()" style="margin-top: 10px; padding: 5px 10px; background-color: #4CAF50; color: white; border: none; border-radius: 3px; cursor: pointer;">Run</button>
+    </div>
+</div>
+
+<!--modal-->
+
+</body>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+<script>
+    CodeMirror.defaults.lint = true;
+    CodeMirror.defaults.mode = 'python';
+    CodeMirror.defaults.gutters = ["CodeMirror-lint-markers"];
+    
+    
+
+    let tabCount = 1;
+    let editors = {};  // Store instances of CodeMirror for each tab
+    let isDarkMode = true;
+
+    // Initialize CodeMirror for the initial tab
+    editors['tab1'] = CodeMirror(document.getElementById('editor1'), {
+        value: '# Write your code for Tab 1 here\nprint("tab1")',
+        mode: 'python',
+        theme:  isDarkMode ? 'monokai' : 'default',
+        lineNumbers: true,
+        autofocus: true,
+        autoCloseBrackets: true,
+        matchBrackets: true,
+        lineWrapping: true, 
+        lint: true,
+        cursorBlinkRate: 500,
+        indentUnit: 4,
+        spellcheck:true,
+        styleActiveLine: true ,
+        gutters: ["CodeMirror-lint-markers","CodeMirror-foldgutter"],
+        foldGutter: true,
+        extraKeys: {
+            'Ctrl-.': 'autocomplete',
+            'Ctrl-Space': function (cm) {
+                cm.showHint({ hint: CodeMirror.hint.python });
+            },
+            'Ctrl-Q': function (cm) {
+                commentOrUncommentSelectedLines(cm);
+            }
+        }
+    });
+        
+
+    function createNewTab() {
+        tabCount++;
+    
+        const tabId = 'tab' + tabCount;
+        const editorId = 'editor' + tabCount;
+    
+        // Create tab
+        const tabElement = document.createElement('div');
+        tabElement.classList.add('tab');
+        tabElement.textContent = 'Tab ' + tabCount;
+        tabElement.onclick = function (event) {
+            event.preventDefault(); // Prevent the default behavior of navigating to an anchor
+            selectTab(tabId);
+            updateFooter(tabId);
+        };
+    
+        // Create tab content
+        const tabContentElement = document.createElement('div');
+        tabContentElement.classList.add('tab-content');
+        tabContentElement.id = tabId;
+    
+        const editorElement = document.createElement('div');
+        editorElement.id = editorId;
+    
+        tabContentElement.appendChild(editorElement);
+    
+        // Append tab and content to the DOM
+        document.getElementById('editor-tabs').appendChild(tabElement);
+        document.body.appendChild(tabContentElement);
+    
+        // Initialize CodeMirror for the new tab and store the instance
+        editors[tabId] = CodeMirror(document.getElementById(editorId), {
+            value: '# Write your code for ' + tabId + ' here\nprint("' + tabId + '")',
+            mode: 'python',
+            theme:  isDarkMode ? 'monokai' : 'default',
+            lineNumbers: true,
+            autofocus: true,
+            autoCloseBrackets: true,
+            matchBrackets: true,
+            lint: true,
+            cursorBlinkRate: 500,
+            styleActiveLine:  true ,
+            indentUnit: 4,
+            spellcheck:true,
+            gutters: ["CodeMirror-lint-markers","CodeMirror-foldgutter"],
+            foldGutter: true,
+            lineWrapping: true, 
+            extraKeys: {
+                'Ctrl-.': 'autocomplete',
+                'Ctrl-Space': function (cm) {
+                    cm.showHint({ hint: CodeMirror.hint.python });
+                },
+                'Ctrl-Q': function (cm) {
+                    commentOrUncommentSelectedLines(cm);
+                }
+            }
+            
+        });
+    
+        // Select the new tab
+        selectTab(tabId);
+    }
+    
+    
+
+    function selectTab(tabId) {
+        const allTabs = document.querySelectorAll('.tab-content');
+        allTabs.forEach(tab => {
+            tab.classList.remove('active');
+        });
+
+        const selectedTab = document.getElementById(tabId);
+        if (selectedTab) {
+            selectedTab.classList.add('active');
+        }
+
+        // Refresh the CodeMirror instance for the selected tab
+        const activeEditor = editors[tabId];
+        if (activeEditor) {
+            activeEditor.refresh();
+        }
+    }
+
+    function cutAction() {
+        const activeEditor = getActiveEditor();
+        if (activeEditor) {
+            document.execCommand('cut');
+        }
+    }
+
+    function copyAction() {
+        const activeEditor = getActiveEditor();
+        if (activeEditor) {
+            document.execCommand('copy');
+        }
+    }
+
+    function pasteAction() {
+        const activeEditor = getActiveEditor();
+        if (activeEditor) {
+            document.execCommand('paste');
+        }
+    }
+
+    function undoAction() {
+        const activeEditor = getActiveEditor();
+        if (activeEditor) {
+            activeEditor.undo();
+        }
+    }
+
+    function redoAction() {
+        const activeEditor = getActiveEditor();
+        if (activeEditor) {
+            activeEditor.redo();
+        }
+    }
+
+    function getActiveEditor() {
+        const activeTabId = getActiveTabId();
+        return editors[activeTabId];
+    }
+
+    function getActiveTabId() {
+        const activeTab = document.querySelector('.tab-content.active');
+        return activeTab ? activeTab.id : null;
+    }
+
+    function updateFooter(tabId) {
+        const activeEditor = editors[tabId];
+        const cursor = activeEditor.getCursor();
+        const line = cursor.line + 1;
+        const col = cursor.ch + 1;
+        const spaces = activeEditor.getValue().substr(0, cursor.ch).match(/ /g)?.length || 0;
+
+        // Update footer content dynamically
+        document.getElementById('line-col-info').textContent = 'Line: ' + line + ', Column: ' + col;
+        document.getElementById('space-info').textContent = 'Spaces: ' + spaces;
+
+        // You may add logic to determine the UTF category based on the active code if needed
+        const utfCategory = getUTFCategoryInfo(activeEditor.getValue());
+        document.getElementById('utf-category-info').textContent = 'UTF Category: ' + utfCategory;
+    }
+
+    // Add an event listener to update the footer on CodeMirror changes
+    document.addEventListener('DOMContentLoaded', function () {
+        updateFooter(getActiveTabId());  // Initial update
+
+        // Add event listeners for cursor activity in all CodeMirror instances
+        Object.values(editors).forEach(editor => {
+            editor.on('cursorActivity', function () {
+                updateFooter(getActiveTabId());
+            });
+        });
+    });
+
+    document.getElementById('editor-tabs').addEventListener('click', function (event) {
+        // Check if the clicked element is a tab
+        if (event.target.classList.contains('tab')) {
+            event.preventDefault(); // Prevent the default behavior of navigating to an anchor
+            const tabId = event.target.textContent.toLowerCase().replace(/\s+/g, '');
+            selectTab(tabId);
+            updateFooter(tabId);
+        }
+    });
+    
+    function getUTFCategoryInfo(code) {
+        // Replace this with your logic to determine UTF category based on the code
+        // For now, let's assume it's "Basic Latin" if the code contains only ASCII characters
+        return /[^\x00-\x7F]/.test(code) ? 'Extended ASCII' : 'Basic Latin';
+    }
+
+    function openFile() {
+        document.getElementById('file-input').click();
+    }
+
+    function handleFile() {
+        const fileInput = document.getElementById('file-input');
+        const file = fileInput.files[0];
+
+        if (file) {
+            const fileName = file.name;
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const content = e.target.result;
+                const activeEditor = getActiveEditor();
+
+                if (activeEditor) {
+                    const tabId = getActiveTabId();
+
+                    // Update the tab text with the file name
+                    const tabElement = document.querySelector(`#${tabId} .tab`);
+                    if (tabElement) {
+                        tabElement.textContent = `Tab: ${fileName}`;
+                    }
+
+                    // Display the file name near the tab
+                    const fileInfoElement = document.getElementById(`file-info-${tabId}`);
+                    if (fileInfoElement) {
+                        fileInfoElement.textContent = `${fileName}`;
+                    }
+
+                    activeEditor.setValue(content);
+                }
+            };
+
+            reader.readAsText(file);
+        }
+    }
+
+
+    function promptForFilename() {
+        const defaultFilename = "untitled.txt"; // Default filename
+        const filename = window.prompt("Enter a filename:", defaultFilename);
+        return filename || defaultFilename; // Use default if the user cancels the prompt
+    }
+
+    function saveFile() {
+        const activeTabId = getActiveTabId();
+        const activeEditor = editors[activeTabId];
+
+        if (activeEditor) {
+            const content = activeEditor.getValue();
+            const filename = promptForFilename(); // Prompt for a filename
+
+            if (filename) {
+                const blob = new Blob([content], { type: "text/plain" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                link.click();
+            } else {
+                alert("Save canceled. Please enter a valid filename.");
+            }
+        }
+    }
+
+    function exitEditor() {
+        const confirmExit = confirm("Do you really want to exit the AI Code Editor?");
+        if (confirmExit) {
+            window.close(); // Close the window
+        }
+    }
+
+    function findAction() {
+        const searchTerm = prompt('Enter text to find:');
+        if (searchTerm !== null) {
+            const codeEditor = document.getElementById('code-editor');
+            const text = codeEditor.value;
+            const startIndex = text.indexOf(searchTerm);
+    
+            if (startIndex !== -1) {
+                const endIndex = startIndex + searchTerm.length;
+                const range = document.createRange();
+                range.setStart(codeEditor.firstChild, startIndex);
+                range.setEnd(codeEditor.firstChild, endIndex);
+    
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+            } else {
+                alert('Text not found.');
+            }
+        }
+    }
+    
+    function replaceAction() {
+        const activeEditor = getActiveEditor();
+        if (activeEditor) {
+            const searchTerm = prompt('Enter text to find:');
+            if (searchTerm !== null) {
+                const replacement = prompt('`Replace "${searchTerm}" with:`');
+                if (replacement !== null) {
+                    const currentContent = activeEditor.getValue();
+                    const newText = currentContent.replace(new RegExp(searchTerm, 'g'), replacement);
+    
+                    if (newText !== currentContent) {
+                        activeEditor.setValue(newText);
+                        alert('Text replaced successfully!');
+                    } else {
+                        alert('Text not found!');
+                    }
+                }
+            }
+        }
+    }
+
+
+    let searchOverlay = null;
+
+function openSearchBar() {
+    const searchTerm = prompt('Enter text to search:');
+    if (searchTerm !== null) {
+        const activeEditor = getActiveEditor();
+        if (activeEditor) {
+            highlightSearchTerm(activeEditor, searchTerm);
+        }
+    }
+}
+
+function highlightSearchTerm(editor, searchTerm) {
+    clearSearchHighlight(); // Clear previous search highlights
+
+    const content = editor.getValue();
+    const searchRegex = new RegExp(searchTerm, 'g');
+    let match;
+    while ((match = searchRegex.exec(content)) !== null) {
+        const start = editor.posFromIndex(match.index);
+        const end = editor.posFromIndex(match.index + match[0].length);
+        searchOverlay = editor.getDoc().markText(start, end, { className: 'search-highlight' });
+    }
+}
+
+function clearSearchHighlight() {
+    if (searchOverlay) {
+        // If there is an existing search overlay, clear it
+        searchOverlay.clear();
+        searchOverlay = null;  // Reset the search overlay variable
+    }
+}
+function toggleFullscreen() {
+    const element = document.documentElement;
+
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+    } else {
+        element.requestFullscreen().catch(err => {
+            console.error(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+    }
+
+    // Toggle a class on the body to apply different styles in fullscreen mode
+    document.body.classList.toggle('fullscreen');
+    console.log(document.body.classList.contains('fullscreen')); // Log to check if the class is added
+}
+
+/**
+// Example: Load static documentation content
+const documentationPanel = document.getElementById('documentation-panel');
+documentationPanel.innerHTML = '<h2>Documentation</h2><p>Write your documentation here...</p>';
+
+// Example: Fetch documentation from an API
+async function fetchDocumentation(apiEndpoint) {
+    try {
+        const response = await fetch(apiEndpoint);
+        const data = await response.json();
+        return data.documentation;
+    } catch (error) {
+        console.error('Error fetching documentation:', error);
+        return 'Documentation not available';
+    }
+}
+
+// Usage
+const apiEndpoint = 'https://api.example.com/docs';
+const documentationContent = await fetchDocumentation(apiEndpoint);
+documentationPanel.innerHTML = documentationContent;
+
+// Example: Linking documentation to selected code
+const selectedCodeElement = getSelectedCodeElement(); // Implement this function
+const documentationLink = getDocumentationLinkForCode(selectedCodeElement);
+documentationPanel.innerHTML = `<iframe src="${documentationLink}" height="100%" width="100%"></iframe>`;
+**/
+// Function to toggle line wrapping based on checkbox state
+
+
+function toggleLineWrapping() {
+    const activeEditor = getActiveEditor();
+    const lineWrapCheckbox = document.getElementById('line-wrap-checkbox');
+
+    if (activeEditor && lineWrapCheckbox) {
+        const isLineWrappingEnabled = lineWrapCheckbox.checked;
+        activeEditor.setOption('lineWrapping', isLineWrappingEnabled);
+    }
+}
+function getActiveEditor() {
+    const activeTabId = getActiveTabId();
+    return editors[activeTabId];
+}
+
+function changeFontSize(size) {
+    const activeEditor = getActiveEditor();
+    if (activeEditor) {
+        activeEditor.getWrapperElement().style.fontSize = size + 'px';
+    }
+}
+changeFontSize(16); // Sets font size to 16px
+
+function toggleMode() {
+    const body = document.body;
+    body.classList.toggle('lightmode');
+}
+
+function getTabIdForEditor(editor) {
+    return Object.keys(editors).find(key => editors[key] === editor);
+}
+  // Add an event listener for cursor activity to highlight matching braces
+  Object.values(editors).forEach(editor => {
+    const tabId = getTabIdForEditor(editor);
+
+    editor.on('cursorActivity', function () {
+        updateFooter(tabId);
+        highlightMatchingBrace(editor, tabId);
+    });
+});
+
+// Function to highlight matching braces
+function highlightMatchingBrace(editor) {
+    const cursor = editor.getCursor();
+    const token = editor.getTokenAt(cursor);
+
+    if (token.string === '{' && token.type === 'bracket') {
+        const openBracketPos = cursor;
+        const closeBracketPos = editor.findMatchingBracket(openBracketPos);
+
+        if (closeBracketPos) {
+            const highlightClass = 'matching-brace-highlight';
+
+            editor.markText(openBracketPos, openBracketPos, { className: highlightClass });
+            editor.markText(closeBracketPos, closeBracketPos, { className: highlightClass });
+
+            // Clear previous matching brace highlights
+            clearMatchingBraceHighlights(editor, highlightClass);
+        }
+    }
+}
+
+// Function to clear previous matching brace highlights
+function clearMatchingBraceHighlights(editor, highlightClass) {
+    const marks = editor.getAllMarks();
+    for (const mark of marks) {
+        if (mark.className === highlightClass) {
+            mark.clear();
+        }
+    }
+}
+
+// Add event listeners for cursor activity to update footer and highlight matching braces
+document.addEventListener('DOMContentLoaded', function () {
+    updateFooter(getActiveTabId());
+
+    Object.values(editors).forEach(editor => {
+        const tabId = getTabIdForEditor(editor);
+
+        editor.on('cursorActivity', function (editor) { // Pass editor as an argument
+            return function() {
+                updateFooter(tabId);
+                highlightMatchingBrace(editor, tabId); // Pass tabId as an argument
+            };
+        }(editor)); // Use closure to capture tabId
+    });
+});
+
+// Inside the initialization of CodeMirror for each tab, add the following options:
+Object.values(editors).forEach(editor => {
+    const tabId = getTabIdForEditor(editor);
+
+    editor.setOption('foldGutter', true);
+    editor.setOption('gutters', ['CodeMirror-lint-markers', 'CodeMirror-foldgutter']);
+
+    // Add an event listener for cursor activity to highlight matching braces
+    editor.on('cursorActivity', function (editor) { // Pass editor as an argument
+        return function() {
+            updateFooter(tabId);
+            highlightMatchingBrace(editor, tabId);
+        };
+    }(editor)); // Use closure to capture tabId
+});
+
+// Inside the initialization of CodeMirror for each tab, add the following options:
+const activeEditor = editors[tabId];
+activeEditor.setOption('foldGutter', true);
+activeEditor.setOption('gutters', ['CodeMirror-lint-markers', 'CodeMirror-foldgutter']);
+
+function toggleMode() {
+    // Toggle the class on the body for additional styling
+    isDarkMode = !isDarkMode;
+    document.body.classList.toggle('lightmode', !isDarkMode);
+    document.body.classList.toggle('darkmode', isDarkMode);
+
+    // Apply the theme to all editors
+    Object.values(editors).forEach(editor => {
+        editor.setOption('theme', isDarkMode ? 'monokai' : 'default');
+    });
+
+    // Update the menu item text based on the current mode
+    const toggleModeMenuItem = document.getElementById('toggleModeMenuItem');
+    if (toggleModeMenuItem) {
+        toggleModeMenuItem.textContent = isDarkMode ? 'Toggle Light Mode' : 'Toggle Dark Mode';
+    }
+}
+
+// Function to comment or uncomment selected lines
+function commentOrUncommentSelectedLines(cm) {
+    const selection = cm.getSelection();
+    const cursor = cm.getCursor();
+    const line = cursor.line;
+
+    if (selection) {
+        // Comment or uncomment the selected lines
+        const selectedLines = selection.split('\n');
+        const isCommented = selectedLines.every(line => line.trim().startsWith('#'));
+
+        cm.operation(() => {
+            for (let i = 0; i < selectedLines.length; i++) {
+                const lineText = selectedLines[i];
+                const lineNum = line + i;
+
+                // Check if the line is already commented
+                if (isCommented) {
+                    // Uncomment the line
+                    cm.replaceRange(lineText.replace(/^#\s*/, ''), { line: lineNum, ch: 0 }, { line: lineNum });
+                } else {
+                    // Comment the line
+                    cm.replaceRange('# ' + lineText, { line: lineNum, ch: 0 }, { line: lineNum });
+                }
+            }
+        });
+    }
+}
+// ... Your existing CodeMirror setup code ...
+
+function generateCodePrompt() {
+    const user_input = prompt("Enter your input:");
+    if (user_input !== null) {
+        fetch('/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user_input: user_input }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Handle the response from Flask
+            const assistant_response = data.assistant_response;
+
+            // Get the active CodeMirror editor
+            const activeEditor = getActiveEditor();
+
+            if (activeEditor) {
+                // Update the CodeMirror editor with the assistant's response
+                activeEditor.setValue(assistant_response);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+}
+
+
+function toggleConsole() {
+    const consoleContainer = document.getElementById('console-container');
+
+    // Toggle the display property of the console container
+    if (consoleContainer.style.display === 'none' || consoleContainer.style.display === '') {
+        consoleContainer.style.display = 'block';
+    } else {
+        consoleContainer.style.display = 'none';
+    }
+}
+
+
+
+
+
+
+
+
+
+function codeSnippet() {
+    const activeEditor = getActiveEditor();
+    if (activeEditor) {
+        const userCode = activeEditor.getValue();
+
+        // Check if the input starts with "#function"
+        if (userCode.trim().startsWith('#function')) {
+            // Send user's code to OpenAI for code snippet generation
+            fetch('/snippet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_input: userCode }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const snippetResponse = data.assistant_response;
+
+                // Append the response to the existing content in the active editor
+                activeEditor.setValue(userCode + '\n\n' + snippetResponse);
+            })
+            .catch(error => console.error('Error:', error));
+        } else {
+            alert('Input should start with "#function" to generate a code snippet.');
+        }
+    }
+}
+
+
+
+
+
+
+
+function errorDebug() {
+    const activeEditor = getActiveEditor();
+    if (activeEditor) {
+        const userCode = activeEditor.getValue();
+
+        // Check if the input starts with "#function"
+        if (userCode.trim().startsWith('#debug')) {
+            // Send user's code to OpenAI for code snippet generation
+            fetch('/debug', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ input_code: userCode }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const debugResponse = data.assistant_response;
+
+                // Append the response to the existing content in the active editor
+                activeEditor.setValue(userCode + '\n\n' + debugResponse);
+            })
+            .catch(error => console.error('Error:', error));
+        } else {
+            alert('Input should start with "#debug" to generate a error and suggestions .');
+        }
+    }
+}
+
+
+
+
+
+
+function codeRefactor() {
+    const activeEditor = getActiveEditor();
+    if (activeEditor) {
+        const userCode = activeEditor.getValue();
+
+        // Check if the input starts with "#function"
+        if (userCode.trim().startsWith('#refactor')) {
+            // Send user's code to OpenAI for code snippet generation
+            fetch('/refactor', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ refactor_input: userCode }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const debugResponse = data.assistant_response;
+
+                // Append the response to the existing content in the active editor
+                activeEditor.setValue(userCode + '\n\n' + debugResponse);
+            })
+            .catch(error => console.error('Error:', error));
+        } else {
+            alert('Input should start with "#refactor" to for code refactoring .');
+        }
+    }
+}
+
+
+
+function codeConversion() {
+    const activeEditor = getActiveEditor();
+    if (activeEditor) {
+        const userCode = activeEditor.getValue();
+
+        // Check if the input starts with "#convert"
+        if (userCode.trim().startsWith('#convert')) {
+            // Send user's code to OpenAI for code snippet generation
+            fetch('/convert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ conversion_input: userCode }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.output_code) {
+                    const conversionResponse = data.output_code;
+
+                    // Append the response to the existing content in the active editor
+                    const updatedCode = userCode + '\n\n' + conversionResponse;
+                    activeEditor.setValue(updatedCode);
+                } else {
+                    console.error('Error in API response:', data);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        } else {
+            alert('Input should start with "#convert" for code conversion.');
+        }
+    }
+}
+
+function codeDocument() {
+    const activeEditor = getActiveEditor();
+    if (activeEditor) {
+        const userCode = activeEditor.getValue();
+
+        // Check if the input starts with "#docs"
+        if (userCode.trim().startsWith('#docs')) {
+            // Send user's code to OpenAI for code snippet generation
+            fetch('/documentation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ document_input: userCode }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const documentResponse = data.assistant_response;
+
+                // Create a centered box with margin for the pre content
+                const centeredBox = `
+                    <div id="centeredBox"  margin: 20px;">
+                       
+                        <h1 style="text-align:left; margin-left:20px;">Code Documentation Response:</h1>
+                        <button onclick="copyResponse()" style="margin-bottom: 10px;margin-left: 90%;title="click here to copy document">Copy Response   <i class="fa fa-copy"></i> </button>
+                        <pre id="docContent" style="background-color: #f0f0f0; margin:20px; padding: 20px;">${documentResponse}</pre>
+                    </div>
+                    <footer style="letter-spacing:2px;font-weight:bold; text-align:center; color:#0000D0D0D; padding:10px;"> Documentation Made By Luna </footer>
+                `;
+
+                // Open a new window to display the response
+                const newWindow = window.open('', '_blank');
+                newWindow.document.write(`
+                    <html>
+                    <head><title>Code Documentation Response</title></head>
+                    <body>
+                        ${centeredBox}
+                    </body>
+                    </html>
+                `);
+
+                // Define the copyResponse function inside the new window
+                newWindow.copyResponse = function() {
+                    const range = newWindow.document.createRange();
+                    range.selectNode(newWindow.document.getElementById('docContent'));
+                    newWindow.getSelection().removeAllRanges();
+                    newWindow.getSelection().addRange(range);
+                    newWindow.document.execCommand('copy');
+                    newWindow.getSelection().removeAllRanges();
+                    // Display alert message
+                    newWindow.alert('Copied to clipboard successfully!');
+                };
+            })
+            .catch(error => console.error('Error:', error));
+        } else {
+            alert('Input should start with "#docs" for code documentation.');
+        }
+    }
+}
+
+function codeExplain() {
+    const activeEditor = getActiveEditor();
+    if (activeEditor) {
+        const userCode = activeEditor.getValue();
+
+        // Check if the input starts with "#function"
+        if (userCode.trim().startsWith('#explain')) {
+            // Send user's code to OpenAI for code snippet generation
+            fetch('/explain', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ input_code: userCode }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const Response = data.assistant_response;
+
+                // Append the response to the existing content in the active editor
+                activeEditor.setValue(userCode + '\n\n' + Response);
+            })
+            .catch(error => console.error('Error:', error));
+        } else {
+            alert('Input should start with "#explain" to for code explaination .');
+        }
+    }
+}
+
+
+
+function closeInputModal() {
+    document.getElementById('inputModal').style.display = 'none';
+}
+
+
+function closeOutputModal() {
+    document.getElementById('outputModal').style.display = 'none';
+}
+
+function compileAndRun() {
+    const activeEditor = editors[getActiveTabId()];
+    const code = activeEditor.getValue();
+
+    // Check if the code contains input() function
+    const containsInput = code.includes('input(');
+
+    if (containsInput) {
+        // Show modal to get input
+        document.getElementById('inputModal').style.display = 'block';
+    } else {
+        // No input needed, directly execute the code
+        executeCode(code, '');
+    }
+}
+
+function executeWithInput() {
+    const inputValue = document.getElementById('inputValue').value;
+
+    // Close the input modal
+    document.getElementById('inputModal').style.display = 'none';
+
+    // Call executeCode function with the input value
+    executeCode(inputValue);
+}
+
+function executeCode(inputValue) {
+    const activeEditor = editors[getActiveTabId()];
+    const code = activeEditor.getValue();
+
+    const formData = new FormData();
+    formData.append('code', code);
+    formData.append('input', inputValue);
+
+    fetch('/executeCode', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(output => {
+        document.getElementById('outputModalContent').textContent = output;
+        document.getElementById('outputModal').style.display = 'block';
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('outputModalContent').textContent = 'Error: ' + error.message;
+        document.getElementById('outputModal').style.display = 'block';
+    });
+}
+
+
+function handleKeyPress(event) {
+    if (event.key === "Enter") {
+        executePython();
+        event.preventDefault(); // Prevent default Enter key behavior (e.g., form submission)
+    }
+}
+
+async function executePython() {
+    const pythonCode = document.getElementById('pythonCode').value;
+
+    try {
+        const response = await fetch('/executePython', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ code: pythonCode }),
+        });
+
+        const data = await response.json();
+
+        const outputDiv = document.getElementById('output');
+        if (data.error) {
+            outputDiv.innerHTML = `<div><strong>Error:</strong> &lt;&lt;${data.error}</div>`; // Display error message with <<
+        } else {
+            outputDiv.innerHTML = `<div>&lt;&lt; ${data.output}</div>`; // Display formatted output with <<
+        }
+        outputDiv.scrollTop = outputDiv.scrollHeight;  // Scroll to bottom
+    } catch (error) {
+        console.error('Error:', error);
+        const outputDiv = document.getElementById('output');
+        outputDiv.innerHTML = `<div><strong>Error:</strong> ${error.message}</div>`; // Display JavaScript error message
+        outputDiv.scrollTop = outputDiv.scrollHeight;  // Scroll to bottom
+    }
+}
+
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
+
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luna-Code Conversion Assistant</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-<copied_integrity_value>" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0px;
+            padding: 0;
+            background-color: #f7f7f7;
+            text-align: center; /* Center align all content */
+        }
+
+        header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        h1 {
+            margin-top: 20px;
+            text-align: center;
+            letter-spacing:2px;
+            font-size:30px;
+        }
+
+        form {
+            margin: 20px auto;
+        }
+
+        label {
+            font-weight: bold;
+            margin-left:10px;
+        }
+
+        textarea {
+            width: 80%;
+            padding: 10px;
+            margin: 10px auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size:20px;
+            resize: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+           
+        }
+
+        a {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        input[type="file"] {
+            display: block;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            margin-left: 20%; 
+            padding-left:30px;
+            border-radius: 5px;
+        }
+        input[type="file"] :hover {
+            border-color: #007bff;  /* Change border color on hover */
+        }
+
+    </style>
+</head>
+<body>
+    <header><h1>Code Convert Assistant</h1></header>
+    {% if assistant_response %}
+        <label for="assistant_response"><h1 style="font-size:20px;">Conversion</h1></label><br>
+        <button onclick="copyToClipboard()" style="margin-left:70%;font-size:15px;">Copy Code <i class="fas fa-copy"></i></button> <br><br>
+        <textarea id="assistant_response" name="assistant_response" style="margin-right:30px;height:50%;" rows="30" cols="50" readonly oninput="autoResize(this)">{{ assistant_response }}</textarea><br>
+    {% else %}
+        <form action="/code_convert" method="post" enctype="multipart/form-data">
+            <!-- File upload input -->
+            <br>
+            <br>
+            <label  style="margin-left:-40px; font-size:20px;" for="file_input" >Upload a file:</label><br><br>
+            &nbsp;&nbsp;&nbsp;
+            <input style="margin-left:130px;" type="file" id="file_input" name="file_input"><br><br><br>
+
+            <!-- Textarea for manual input -->
+            <label style="font-size:20px;"for="user_input">Or Enter your input:</label><br><br>
+           <!-- Dropdown list with input for code conversion -->
+   
+
+           <textarea id="user_input" name="user_input" rows="4" cols="50" oninput="autoResize(this)"></textarea><br><br>
+           <label for="conversion_type" style="font-size:20px;margin-left:-50px;">Change to:</label>
+           <input list="conversion_options" id="conversion_type" name="conversion_type" style="width: 300px; margin-left:-1060px;padding:12px;"> <!-- Adjust width as needed -->
+           <datalist id="conversion_options">
+               <option value="Python">
+               <option value="Java">
+               <option value="JavaScript">
+               <!-- Add more options as needed -->
+           </datalist>
+           
+            <br>
+            <br>
+            <!-- Submit button -->
+            <button type="submit" title="click here to formatand refactor the code" style="font-size:20px;">Convert <i class="fas fa-check"></i> </button>
+        
+        </form>
+    {% endif %}
+
+    <!-- JavaScript function to automatically resize textarea -->
+    <script>
+        function copyToClipboard() {
+            var textarea = document.getElementById('assistant_response');
+            var code = textarea.value;
+    
+            // Check if triple backticks exist in the code
+            var startIndex = code.indexOf('```');
+            var endIndex = code.lastIndexOf('```');
+    
+            if (startIndex !== -1 && endIndex !== -1 && startIndex !== endIndex) {
+                // Extract content between triple backticks
+                var copiedCode = code.substring(startIndex + 3, endIndex).trim();
+                
+                // Create a temporary textarea to copy the code
+                var tempTextarea = document.createElement('textarea');
+                tempTextarea.value = copiedCode;
+                document.body.appendChild(tempTextarea);
+                tempTextarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempTextarea);
+                
+                alert('Copied code to clipboard!');
+            } else {
+                // If triple backticks not found, copy entire content of textarea
+                textarea.select();
+                document.execCommand('copy');
+                alert('Copied the content to clipboard!');
+            }
+        }
+
+        // Resize textarea to fill available space
+        window.addEventListener('resize', resizeTextarea);
+        window.addEventListener('DOMContentLoaded', resizeTextarea);
+
+        function resizeTextarea() {
+            var textarea = document.getElementById('assistant_response');
+            var availableWidth = window.innerWidth * 0.8; // 80% of window width
+            var availableHeight = window.innerHeight * 0.7; // 70% of window height
+            textarea.style.width = availableWidth + 'px';
+            textarea.style.height = availableHeight + 'px';
+        }
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto'; // Reset the height to auto
+            textarea.style.height = textarea.scrollHeight + 'px'; // Set the height to the scroll height
+        }
+    </script>
+</body>
+</html>

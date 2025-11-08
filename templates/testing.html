@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-<copied_integrity_value>" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Code Testing Assistant</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin: 20px 0;
+            font-size: 34px;
+            text-align: center;
+        }
+
+        form {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            margin-top:30px;
+            padding-right:50px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: vertical;
+            font-size: 16px;
+            background: #fff;
+        }
+
+        input[type="file"] {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 5px;
+            font-size: 16px;
+            background: #fff;
+            transition: border-color 0.3s;
+        }
+
+        input[type="file"]:hover {
+            border-color: #007bff;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Code Testing Assistant</h1>
+    </header>
+
+    {% if response %}
+        <h2 class="center">Test Results</h2>
+        <button onclick="copyToClipboard()" style="margin-left: 80%;">Copy <i class="fas fa-copy"></i></button>
+        <textarea id="test_results" rows="10" style="height: 300px;" readonly>{{ response }}</textarea>
+    {% else %}
+        <form action="/test_code" method="post" enctype="multipart/form-data">
+            <label for="file_input">Upload a File:</label><br><br>
+            <input type="file" id="file_input" name="file_input"><br><br>
+            <label for="user_input">Or Enter Your Input:</label><br><br>
+            <textarea id="user_input" name="user_input" rows="4" oninput="autoResize(this)"></textarea><br><br>
+            <div class="center">
+                <button type="submit">
+                    Run Tests  <i class="fas fa-play"></i>
+                </button>
+            </div>
+        </form>
+    {% endif %}
+
+    <script>
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+
+        // Initialize textarea size adjustment for existing textareas
+        document.querySelectorAll('textarea').forEach(textarea => {
+            autoResize(textarea);
+        });
+    </script>
+</body>
+</html>

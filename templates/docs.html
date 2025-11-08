@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Documentation Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-<copied_integrity_value>" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+            text-align: center;
+        }
+        header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 0;
+        }
+        h1 {
+            margin-top: 20px;
+            letter-spacing: 2px;
+            font-size: 30px;
+        }
+        form {
+            margin: 20px auto;
+            width: 80%;
+        }
+        label {
+            font-weight: bold;
+        }
+        textarea, input[type="file"] {
+            width: 60%;
+            padding: 10px;
+            margin: 10px auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+            font-size: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        #btn {
+            font-size: 20px;
+        }
+        .response-container {
+            margin-top: 20px;
+        }
+        pre {
+            text-align: left;
+            white-space: pre-wrap;
+            margin: 10px auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <header><h1>Project Documentation Generator</h1></header>
+    {% if response %}
+        <h2>Input:</h2>
+        <pre>{{ user_input }}</pre>
+        <div class="response-container">
+            <h2>Generated Documentation:</h2>
+            <button onclick="copyToClipboard()" style="margin-left: 90%;">Copy <i class="fas fa-copy"></i></button>
+            <br><br>
+            <textarea id="generated_doc" rows="20">{{ response }}</textarea>
+            <br>
+        </div>
+        <script>
+            var textarea = document.getElementById('generated_doc');
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+            textarea.style.width = '100%';
+
+            function copyToClipboard() {
+                var textarea = document.getElementById('generated_doc');
+                textarea.select();
+                document.execCommand('copy');
+                alert('Copied the content to clipboard!');
+            }
+        </script>
+    {% else %}
+        <br><br>
+        <form action="/docs_code" method="post" enctype="multipart/form-data">
+            <label for="user_input">Enter your input:</label><br><br>
+            <textarea id="user_input" name="user_input" rows="10" cols="50"></textarea><br>
+            <label for="file">Or upload a file:</label><br><br>
+            <input type="file" id="file" name="file"><br><br>
+            <button id="btn" type="submit" title="click here to generate documentation">Generate Docs <i class="fas fa-file-alt"></i></button>
+        </form>
+    {% endif %}
+</body>
+</html>

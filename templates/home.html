@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ask Luna-An Code Assistant</title>
+<!-- In the <head> section of your HTML files -->
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/style.css') }}">
+
+</head>
+
+
+<body>
+
+    <div id="home-content">
+    <header><span style="color:#fff;">Luna</span> - An Intelligent Code Assistant</header>
+
+    <div class="content">
+    <div class="card-container">
+    <div class="card">
+        <img src="{{ url_for('static', filename='img/luna-high-resolution-logo (2).png') }}" alt="Card Image 1">
+        <div class="card-content">
+            <div class="card-title"><a href="/editor">Luna-Code Editor</a></div>
+            <div class="card-description">
+                An AI-powered code editor revolutionizes coding by offering intelligent code completion, error detection, and automated fixes. It formats code per style guidelines, generates documentation, and suggests optimizations, boosting efficiency. With AI-driven test generation, refactoring support, and contextual explanations, developers experience enhanced productivity and code quality assurance.</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <img src="{{ url_for('static', filename='img/generate.png') }}" alt="Card Image 1">
+        <div class="card-content">
+            <div class="card-title"><a href="/generated_code">Generate Code</a></div>
+            <div class="card-description">Code generation using AI assistants involves using natural language processing models, such as GPT (Generative Pre-trained Transformer) models, to generate code based on textual descriptions or specifications provided by users.</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <img src="{{ url_for('static', filename='img/formatting.png') }}" alt="Card Image 1">
+        <div class="card-content">
+            <div class="card-title"><a href="/format_code"> Refactor Code </a></div>
+            <div class="card-description">Automatically formats code according to style guidelines, improving readability and consistency.This allows developers to focus on writing high-quality code, implementing features, and addressing  formatting tasks.</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <img src="{{ url_for('static', filename='img/detection.png') }}" alt="Card Image 1">
+        <div class="card-content">
+            <div class="card-title"><a href="/detect_error">Error Detection </a></div>
+            <div class="card-description">Identifies and flags potential errors, such as undefined variables, unused imports, or unreachable code.This helps catch common programming errors related to data types and ensures type safety in the code.This ensures that developers remove dead code, improving code clarity and reducing potential confusion.</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <img src="{{ url_for('static', filename='img/documentation.png') }}" alt="Card Image 1">
+        <div class="card-content">
+            <div class="card-title"><a href="/docs_code">Code Documentation </a></div>
+            <div class="card-description">Generates or suggests documentation for functions, classes, and methods based on code analysis.AI code assistants often integrate seamlessly with popular integrated development environments (IDEs) and code editors, providing documentation suggestions directly within the code editor interface. </div>
+        </div>
+    </div>
+
+
+
+    
+    <div class="card">
+        <img src="{{ url_for('static', filename='img/performance.png') }}" alt="Card Image 1">
+        <div class="card-content">
+            <div class="card-title"><a href="/analyze_code">Code Performance</a></div>
+            <div class="card-description">
+                Analyze the efficiency of your code and get suggestions for improvements, such as memory usage optimizations or algorithm enhancements.
+            </div>
+        </div>
+    </div>
+    
+
+
+     
+    <div class="card">
+        <img src="{{ url_for('static', filename='img/testing.png') }}" alt="Card Image 1">
+        <div class="card-content">
+            <div class="card-title"><a href="/test_code">Code Testing</a></div>
+            <div class="card-description">Assists in writing, running, and debugging tests for code coverage and quality assurance.The assistant can analyze code coverage reports generated during test execution and provide insights into which parts of the code are covered by tests and which areas require additional test coverage. It can also suggest ways to improve code coverage by writing additional tests for untested code paths.</div>
+        </div>
+    </div>
+
+
+    <div class="card">
+        <img src="{{ url_for('static', filename='img/templates.png') }}" alt="Card Image 1">
+        <div class="card-content">
+            <div class="card-title"><a href="/template_code">Code Template</a></div>
+            <div class="card-description">Provides templates or boilerplate code for common tasks or design patterns, accelerating development.In addition to templates, the assistant can provide code snippets for common programming tasks, such as input validation, error handling, and asynchronous programming. These snippets save time and effort by providing reusable code segments for frequently encountered tasks.</div>
+        </div>
+    </div>
+
+
+
+    
+    <div class="card">
+        <img src="{{ url_for('static', filename='img/explain.png') }}" alt="Card Image 1">
+        <div class="card-content">
+            <div class="card-title"><a href="/explain_code">Code Explanation </a></div>
+            <div class="card-description">The process typically involves providing context, breaking down complex code into simpler parts, and explaining the logic or functionality step by step.For each part of the code, explain the logic or functionality step by step. Start with the entry point (e.g., main function, API endpoint) and walk through the code execution flow sequentially. </div>
+        </div>
+    </div>
+
+
+    <div class="card">
+        <img src="{{ url_for('static', filename='img/report.png') }}" alt="New Card Image">
+        <div class="card-content">
+            <div class="card-title"><a href="/report_generate">Report Generation</a></div>
+            <div class="card-description">Report generation using a code assistant typically involves automating the process of creating detailed reports based on code analysis, test results, performance metrics, and other relevant data.The code assistant generates report templates or uses predefined report templates tailored to the project's needs.</div>
+        </div>
+    </div>
+
+
+
+
+    <div class="card">
+        <img src="{{ url_for('static', filename='img/convert.png') }}" alt="New Card Image">
+        <div class="card-content">
+            <div class="card-title"><a href="/code_convert">Code Conversion</a></div>
+            <div class="card-description">The assistant analyzes the source code to understand its structure, syntax, dependencies, and functionality. It identifies patterns, constructs, and language-specific features that need to be converted accurately.Based on the analysis, the assistant applies conversion rules and mappings to translate code elements from the source language to the target language.</div>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+
+    </div>
+    
+    <footer>&copy;2024 Ask Luna. All Rights Reserved</footer>
+
+</div>
+</body>
+
+</html>

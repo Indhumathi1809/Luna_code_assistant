@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luna-Code Generation</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-<copied_integrity_value>" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0px;
+            padding: 0;
+            background-color: #f7f7f7;
+            text-align: center; /* Center align all content */
+        }
+        header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        h1 {
+            margin-top: 20px;
+            letter-spacing:2px;
+            font-size:30px;
+        }
+
+        form {
+            margin: 20px auto;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        textarea {
+            width: 60%;
+            padding: 10px;
+            margin: 10px auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+            font-size:15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight:bold;
+            
+            margin-top: 10px;
+        }
+        #btn{
+            font-size:20px;
+        }
+
+        a {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header><h1>Code Generation</h1></header>
+   
+    {% if assistant_response %}
+        <h2>Input:
+        <span>{{ user_input }}</span>
+        </h2>  <!-- Display the user input -->
+        <h2>Generated Code:</h2>
+        <button onclick="copyToClipboard()" style="margin-left:90%; ">Copy Code<i class="fas fa-copy"></i></button> <br>
+        <br>
+        <textarea id="generated_code" rows="4" cols="50">{{ assistant_response }}</textarea>  <!-- Display generated code in a text area -->
+        <br>
+     
+
+        <!-- JavaScript to adjust textarea height and width -->
+        <script>
+            var textarea = document.getElementById('generated_code');
+            textarea.style.height = 'auto'; // Reset height to auto
+            textarea.style.height = textarea.scrollHeight + 'px'; // Set height based on content
+            textarea.style.width = '100%'; // Set width to fill container
+        </script>
+    {% else %}
+     
+        <br>
+        <br>
+        <form action="/generated_code" method="post">
+            <label style="font-size:24px;margin-left:200px;" for="user_input">Enter your input:</label><br><br>
+            <textarea id="user_input" name="user_input" rows="4" cols="50"></textarea><br>
+            <button id="btn" type="submit" title="click here to generate code">Generate Code <i class="fas fa-file-code"></i> </button>
+        </form>
+    {% endif %}
+</body>
+<script>
+    function copyToClipboard() {
+        var textarea = document.getElementById('generated_code');
+        var code = textarea.value;
+
+        // Check if triple backticks exist in the code
+        var startIndex = code.indexOf('```');
+        var endIndex = code.lastIndexOf('```');
+
+        if (startIndex !== -1 && endIndex !== -1 && startIndex !== endIndex) {
+            // Extract content between triple backticks
+            var copiedCode = code.substring(startIndex + 3, endIndex).trim();
+            
+            // Create a temporary textarea to copy the code
+            var tempTextarea = document.createElement('textarea');
+            tempTextarea.value = copiedCode;
+            document.body.appendChild(tempTextarea);
+            tempTextarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextarea);
+            
+            alert('Copied code to clipboard!');
+        } else {
+            // If triple backticks not found, copy entire content of textarea
+            textarea.select();
+            document.execCommand('copy');
+            alert('Copied the content to clipboard!');
+        }
+    }
+
+    // Automatically adjust textarea height
+    function autoResize(textarea) {
+        textarea.style.height = 'auto'; // Reset the height to auto
+        textarea.style.height = textarea.scrollHeight + 'px'; // Set the height to the scroll height
+    }
+</script>
+
+</html>

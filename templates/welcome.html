@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-<copied_integrity_value>" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Ask Luna-An Code Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('{{ url_for('static', filename='img/stars.jpg') }}');
+            background-size: cover;
+            background-position: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        h1 {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 40px;
+            opacity: 0;
+            animation: riseIn 1.5s forwards cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Apply the riseIn animation with a smooth cubic-bezier curve */
+        }
+
+        p {
+            color: #fff;
+            font-weight:bold;
+            font-size: 20px;
+            letter-spacing: 3px;
+        }
+
+        @keyframes riseIn {
+            from {
+                transform: translateY(-100px); /* Start position above the viewport */
+                opacity: 0; /* Start with opacity 0 */
+            }
+
+            to {
+                transform: translateY(0); /* End position at the top of the viewport */
+                opacity: 1; /* End with opacity 1 */
+            }
+        }
+        span{
+            font-size:90px;
+            color:#2979ff;
+        }
+        button{
+            color:#fff;
+            background-color:#2979ff;
+            border:none;
+            padding:14px;
+            font-weight:bold;
+            margin-top:40px;
+            width:20%;
+            cursor:pointer;
+            letter-spacing:2px;
+            font-size:18px;
+            border-radius:10px;
+            animation: riseButton 2.5s forwards cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        
+        }
+        button:hover {
+            background-color: #1959c1; /* New background color on hover */
+        }
+
+        @keyframes riseButton {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        a{
+            text-decoration:none;
+            color:#fff;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Welcome To <span>Luna's</span> Code World <i class="fas fa-moon moon-icon" style="color: #f39c12; font-size: 2em;"></i> </h1>
+    <p>An Intelligent AI Code Assistant</p>
+    <button title="click here to start the code assistant"><a href="/index">Get Started</a></button>
+</body>
+
+</html>

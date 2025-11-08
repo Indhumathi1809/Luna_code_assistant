@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-<copied_integrity_value>" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Luna-Report Generation Assistant</title>
+    <style>
+        textarea {
+            resize: vertical; /* Allow vertical resizing only */
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0px;
+            padding: 0;
+            background-color: #f7f7f7;
+            text-align: center; /* Center align all content */
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: #fff;
+            letter-spacing:2px;
+            font-size:30px;
+        }
+
+        form {
+            width: 60%;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            font-weight: bold;
+            text-align:left;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: vertical;
+            margin-bottom: 10px;
+            box-sizing: border-box; /* Include padding and border in the width */
+        }
+
+        input[type="file"] {
+            margin-top: 10px;
+        }
+
+        input[type="submit"] {
+            display: block;
+            width: 15%;
+            margin: 10px auto;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            font-weight:bold;
+            border-radius: 5px;
+            font-size:20px;
+            cursor: pointer;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+           
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            form {
+                width: 80%;
+            }
+        }
+
+        header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        h1 {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+
+        input[type="file"] {
+            display: block;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header><h1>Report Generation</h1></header><br><br>
+    <form id="docs_code_form" action="/report_generate" method="post" enctype="multipart/form-data">
+        <label for="user_input" style="font-size:20px;">Enter your code:</label><br>
+        <textarea id="user_input" name="user_input" rows="10" cols="50" oninput="autoResize(this)">{{ user_input }}</textarea><br>
+        <label for="file_input" style="font-size:20px;">Upload your file:</label><br>
+        <input type="file" id="file_input" name="file"><br>
+        
+        <br>
+        <input type="submit" value="Report  &#xf15b; " title="click here to generate the documentation for code"  style="font-family: 'Font Awesome 5 Free';"><br>
+        <br>
+        <br>
+        {% if response %}
+        <label for="assistant_response"><h1>Report</h1></label><br>
+        <button onclick="copyToClipboard()" style="margin-left:70%;">Copy Code <i class="fas fa-copy"></i> </button> <br><br>
+        <textarea id="assistant_response" name="assistant_response" rows="10" cols="50" readonly oninput="autoResize(this)">{{ response }}</textarea><br>
+        {% endif %}
+    </form>
+
+    <script>
+        function autoResize(textarea) {
+            textarea.style.height = 'auto'; // Reset the height to auto
+            textarea.style.height = textarea.scrollHeight + 'px'; // Set the height to the scroll height
+        }
+
+        // Automatically adjust both input and response textareas on page load
+        window.onload = function() {
+            var userTextarea = document.getElementById('user_input');
+            var responseTextarea = document.getElementById('assistant_response');
+            autoResize(userTextarea);
+            autoResize(responseTextarea);
+        };
+
+        function copyToClipboard() {
+            var textarea = document.getElementById('fassistant_response');
+            var code = textarea.value;
+    
+            // Check if triple backticks exist in the code
+            var startIndex = code.indexOf('```');
+            var endIndex = code.lastIndexOf('```');
+    
+            if (startIndex !== -1 && endIndex !== -1 && startIndex !== endIndex) {
+                // Extract content between triple backticks
+                var copiedCode = code.substring(startIndex + 3, endIndex).trim();
+                
+                // Create a temporary textarea to copy the code
+                var tempTextarea = document.createElement('textarea');
+                tempTextarea.value = copiedCode;
+                document.body.appendChild(tempTextarea);
+                tempTextarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempTextarea);
+                
+                alert('Copied code to clipboard!');
+            } else {
+                // If triple backticks not found, copy entire content of textarea
+                textarea.select();
+                document.execCommand('copy');
+                alert('Copied the content to clipboard!');
+            }
+        }
+
+    </script>
+</body>
+</html>
